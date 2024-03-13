@@ -1,0 +1,31 @@
+function ga4CheckoutEvents(event) {
+  let checkout = event.data.checkout;
+  let lineItems = [];
+  for (const checkoutLineItem of event.data.checkout.lineItems){
+    lineItems.push({
+      item_id: checkoutLineItem.variant.sku,
+      item_name: checkoutLineItem.title,
+      item_variant: checkoutLineItem?.variant.title,
+      item_brand: checkoutLineItem.variant.product.vendor,
+      price: checkoutLineItem.variant.price.amount,
+      quantity: checkoutLineItem.quantity
+    });
+  }
+  return {
+    currency: event.data.checkout.currencyCode,
+    value: event.data.checkout.totalPrice.amount,
+    tax: event.data.checkout.totalTax,
+    transaction_id: event.data.checkout.order.id, 
+    items: lineItems
+  };
+}
+
+analytics.subscribe("checkout_completed", (event) => {
+  const data = ga4CheckoutEvents(event)
+  window.dataLayer.push({
+  event: 'purchase_sb',
+  email: event.data.checkout.email,
+  event_id: event.id,
+  ecommerce: data })
+   } 
+);
